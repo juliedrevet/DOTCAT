@@ -1,18 +1,21 @@
 function shape = shuffle_shape(expe)
+% only works for 2 practice + 8 testing blocks
 
+
+shape = zeros(length(expe.blck),2);
+nprac = expe.cfg.nprac;
 sub_shape = shuffle_subshape;
-shape_order = findmirror(expe);
+% condtn always alternating 1 2 1 2 1 2 1 2
+% apply sub_shape to all condtn(1)
+shape((nprac+1):2:end,:) = sub_shape;
+% apply sub_shape to all mirror
+% mirror from 1:4 is mod(((1:4)+1),4)+1
+shape((nprac+2):2:end,:) = sub_shape(mod(((1:4)+1),4)+1,:);
 
-% 2 last training shapes: not in the first two test blocks
-pres = shuffle_subshape;
-s = sub_shape(shape_order(5:end),:);
-while sum(sum(ismember(pres(3:4,:),s(1:2,:))))~=0
-    pres = shuffle_subshape;
-end
+% apply shape for practice blocks (should differ from 2 first blocks)
+prac_shape = shape((nprac+3):(nprac+4),:);
 
-% allocate shapes index
-shape = [pres; s];
-
+shape(1:nprac,:) = prac_shape';
 end
 
 function subshape = shuffle_subshape

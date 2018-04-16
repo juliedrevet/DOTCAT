@@ -1,4 +1,4 @@
-function perf = run_model(blck, nsim, ntrl, perc)
+function perf = run_model(blck,stim, nsim, ntrl, perc)
 
 if blck.condtn == 1 
     % single dot outcome: include false feedbacks
@@ -28,6 +28,6 @@ elseif blck.condtn == 2
     end
 end
 
-perf = mean(sum((wsls_ans(:,1:ntrl)==blck.correct(1:ntrl)),2)/ntrl);
+perf = mean(sum((wsls_ans(:,1:ntrl)==stim.correct(1:ntrl)),2)/ntrl);
 
 end

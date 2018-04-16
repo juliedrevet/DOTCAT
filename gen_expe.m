@@ -17,8 +17,9 @@ addpath ./Toolboxes/Rand
 addpath ./Toolboxes/IO
 addpath ./Toolboxes/Stimuli/
 
-expe(12) = struct(); %12 => 4 practice blocks, 8 experimental blocks
-cfg  = [];
+expe  = struct(); %12 => 4 practice blocks, 8 experimental blocks
+cfg   = struct();
+nprac = 2;
 
 % check input arguments
 if nargin < 2
@@ -28,96 +29,92 @@ elseif nargin < 1
     error('Missing subject number!');
 end
 
-%%
-% cfg.taskid: task identifier => 1:observer or 2:agent
-% cfg.condtn: task condition  => 1:single Dot or 2: handful of Dots
-% cfg.epimap: episode mapping => 1:green=target|starting or 2:blue=target|starting
+%% configuration structure
+% cfg.condtn: task condition  => 1:simple Dot or 2: bicolor dot
+% cfg.epimap: episode mapping => 1:color1=target|starting or 2:color2=target|starting
 
-nprac = 4;
-
-% task identifier => 1:observer or 2:actor
+% task condition => 1:simple dot or 2:bicolor dot
 % 1st bit of subject number
 if bitget(subj,1)
-    cfg.taskid = [1 1 2 2  1 1 2 2  1 1 2 2];
+    cfg.condtn = [1 2  1 2 1 2  1 2 1 2];
 else
-    cfg.taskid = [2 2 1 1  2 2 1 1  2 2 1 1];
+    cfg.condtn = [2 1  2 1 2 1  2 1 2 1];
 end
-
-% task condition => 1:dot or 2:handful of dots or 3:practice
-% 2nd bit of subject number
+% episode mapping => 1:color1=target|starting or 2:color2=target|starting
+% 2rd bit of subject number
 if bitget(subj,2)
-    cfg.condtn = [1 2 1 2  1 2 1 2  1 2 1 2];
+    cfg.epimap = [2 1  2 1 1 2  1 2 2 1];
 else
-    cfg.condtn = [2 1 2 1  2 1 2 1  2 1 2 1];
-end
-% episode mapping => 1:green=target|starting or 2:blue=target|starting
-% 3rd bit of subject number
-if bitget(subj,3)
-    cfg.epimap = [2 1 2 1  2 1 2 1  1 2 1 2];
-else
-    cfg.epimap = [1 2 1 2  1 2 1 2  2 1 2 1];
+    cfg.epimap = [1 2  1 2 2 1  2 1 1 2];
 end
 
 cfg.nprac = nprac;
+expe.cfg  = cfg;
+
+nblck = length(cfg.condtn);
 
 %%
+b = 1;
+fprintf('Generating practice blocks...');
 if taskeq
-    % full equalization between tasks O and A
-    isub = find(cfg.taskid == cfg.taskid(1)); % block indices of 1st task
-    jsub = find(cfg.taskid ~= cfg.taskid(1)); % block indices of 2nd task
-    for i = 1:length(isub)
-        % generate block for 1st task
-        iblck = isub(i);
-        expe(iblck).cfg = cfg;
-        cfg_blck = [];
-        cfg_blck.taskid  = cfg.taskid(iblck);
-        cfg_blck.condtn  = cfg.condtn(iblck);
-        cfg_blck.epimap  = cfg.epimap(iblck);
-        if (iblck <= nprac)
-            expe(iblck).blck = gen_blck(cfg_blck,true);
-        else
-            expe(iblck).blck = gen_blck(cfg_blck);
-        end
-        % generate training blocks independantly (no mirror)
-        if iblck <= nprac
-            jblck = jsub(i);
-            cfg_blck = [];
-            cfg_blck.taskid  = cfg.taskid(jblck);
-            cfg_blck.condtn  = cfg.condtn(jblck);
-            cfg_blck.epimap  = cfg.epimap(jblck);
-            expe(jblck).cfg  = cfg;
-            expe(jblck).blck = gen_blck(cfg_blck,true);           
-        else
-            % copy block information for 2nd task in 2nd half
-            mirr = jsub(cfg.condtn(jsub)==cfg.condtn(iblck));
-            if (iblck<9)
-                jblck = mirr(mirr>8);
-            else
-                jblck = mirr((mirr<9) & (mirr>nprac));
-            end
-            expe(jblck).cfg = cfg;
-            expe(jblck).blck = expe(iblck).blck;
-            expe(jblck).blck.taskid = 3-expe(iblck).blck.taskid;
-        end
+    % generate only 4 and distribute it to equalize between condtn UNI and BICOLOR
+    isub = find(cfg.condtn(nprac+1:end) == cfg.condtn(1))+nprac; % block indices of 1st condtn
+    jsub = find(cfg.condtn(nprac+1:end) ~= cfg.condtn(1))+nprac; % block indices of 2nd condtn
+    
+    % idx 1st condt: 1:4
+    % idx 2nd condt: mod(((1:4)+1),4)+1 (mirror!)
+    
+    % generate practice blocks
+    for iprac = 1:nprac
+        blck = gen_blck(true);
+        f = fieldnames(blck);
+        blck.condtn = cfg.condtn(iprac);
+        blck.epimap = cfg.condtn(iprac);
+        blck = orderfields(blck,['condtn'; 'epimap';f]);
+        expe.blck(iprac) = blck;
     end
+    fprintf('done.\nGenerating testing blocks...\n');
+    
+    % generate expe blocks (4 needed)
+    for iblck = 1:(nblck-nprac)/2
+        fprintf('  * generating episodes for block %d/%d...\n',b,(nblck-nprac));
+        blck = gen_blck;
+        f = fieldnames(blck);
+        blck.condtn = cfg.condtn(isub(iblck));
+        blck.epimap = cfg.epimap(isub(iblck));
+        blck = orderfields(blck,['condtn'; 'epimap';f]);
+        expe.blck(isub(iblck)) = blck;
+        b = b+1;
+        fprintf('  * generating episodes for block %d/%d...\n',b,(nblck-nprac));
+        blck.condtn = cfg.condtn(jsub(mod(iblck+1,4)+1));
+        blck.epimap = cfg.epimap(jsub(mod(iblck+1,4)+1));
+        blck = orderfields(blck,['condtn'; 'epimap';f]);
+        expe.blck(jsub(mod(iblck+1,4)+1)) = blck;
+        b = b+1;
+    end
+    fprintf('...done.\n\n');
 else
-    % no equalization between tasks
+    % no equalization between condtn
     for iblck = 1:nblck
-        expe(iblck).cfg = cfg;
         % generate block
-        cfg_blck = [];
-        cfg_blck.taskid = cfg.taskid(iblck);
-        cfg_blck.condtn = cfg.condtn(iblck);
-        cfg_blck.epimap = cfg.epimap(iblck);
         if iblck <= nprac
-            blck = gen_blck(cfg_blck,true);
+            blck = gen_blck(true);
         else
-            blck = gen_blck(cfg_blck);
+            fprintf('  * generating episodes for block %d/%d...\n',b-nprac,nblck-nprac);
+            blck = gen_blck;
         end
-        blck.taskid = cfg_blck.taskid;
-        expe(iblck).blck = blck;
+        f = fieldnames(blck);
+        blck.condtn = cfg.condtn(iblck);
+        blck.epimap = cfg.condtn(iblck);
+        blck = orderfields(blck,['condtn'; 'epimap';f]);
+        expe.blck(iblck) = blck;
+        if b == nprac
+            fprintf('done.\nGenerating testing blocks...\n');
+        elseif b == nblck
+            fprintf('...done.\n\n')
+        end
+        b = b+1;
     end
 end
 
-%plot_expe(expe)
 end
