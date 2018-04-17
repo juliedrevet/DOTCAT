@@ -12,4 +12,7 @@ Data/
 old_drafts/
 scrshots/
 Analysis/fig/
+
+# exception
 !.gitignore
+!Raw/
