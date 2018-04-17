@@ -7,7 +7,7 @@ addpath ./Toolboxes/Stimuli/Auditory
 
 
 %% customizable options
-syncflip  = true;
+syncflip  = false;
 plotornot = false;
 respprob  = true;   % show response probe that disappear just before stim?
 make_scrshots = false; % make screenshots?
@@ -67,7 +67,7 @@ errmsg  = []; % error message
 
 
 % set screen parameters
-iscr = 0;%2  % screen index
+iscr = 2;%2  % screen index
 res  = []; % screen resolution
 fps  = []; % screen refresh rate
 ppd  = 40; % number of screen pixels per degree of visual angle

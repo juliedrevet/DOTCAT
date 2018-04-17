@@ -1,3 +1,4 @@
+
 %%
 close all
 clear all java
@@ -42,17 +43,24 @@ fprintf('done!\n\n')
 if isempty(calibration)
     error('no calibration available');
 elseif runbgncalib
-    fprintf('Press any key to continue.\n')
+    fprintf('Press any key to start beginning calibration.\n')
     pause
-    [calibration1,aborted,errmsg] = run_calibration(subj,calibration,true); % with training!
+    [calibration1,aborted0,errmsg] = run_calibration(subj,calibration,true); % with training!
+    if aborted0
+        return
+    end
 elseif ~runbgncalib && ~isfield(calibration, 'rslt') 
         fprintf('No calibration results available, run calibration!\n')
         fprintf('Press any key to continue.\n')
         pause
-        [calibration1,aborted,errmsg] = run_calibration(subj,calibration,true);
+        [calibration1,aborted0,errmsg] = run_calibration(subj,calibration,true);
+        if aborted0
+            return
+        end
 elseif ~runbgncalib && isfield(calibration, 'rslt')
-        calibration1 = calibration;   
+        calibration1 = calibration;
 end
+
 fprintf('\t min / max proportion of Color 1: \t%d / %d\n\n',round(calibration1.rslt.range(1)*100),round(100*calibration1.rslt.range(2)))
 
 
@@ -78,9 +86,13 @@ end
 if start_blck <=6
     fprintf('Press any key to run experiment (1st half).\n')
     pause
-    [expe,aborted] = run_expe(subj,calibration1,pattern_raw,expe_raw,start_blck,6);
+    [expe,aborted1] = run_expe(subj,calibration1,pattern_raw,expe_raw,start_blck,6);
     start_blck = 7;
+    if aborted1
+        return;
+    end
 end
+
 
 fprintf('*** MID-CALIBRATION ***\n\n')
 if isempty(calibration)
@@ -103,7 +115,10 @@ fprintf('*** EXPERIMENT 2nd Half ***\n\n')
 % run experiment (2nd half or start at specified block)
 fprintf('Press any key to run experiment (2nd half).\n')
 pause
-[expe,aborted] = run_expe(subj,calibration2,pattern_raw,expe_raw,start_blck,10);
+[expe,aborted2] = run_expe(subj,calibration2,pattern_raw,expe_raw,start_blck,10);
+if aborted2
+    return;
+end
 
 fprintf('*** END CALIBRATION ***\n\n')
 % run end calibration
@@ -122,21 +137,21 @@ elseif ~runendcalib && isfield(calibration, 'rslt')
         calibration3 = calibration;   
 end
 
-%
-plot_calib(calibration);
+% 
+plot_calib(calibration1);
 savefig(sprintf('./Data/S%02d/calibration1',subj))
 plot_calib(calibration2);
 savefig(sprintf('./Data/S%02d/calibration2',subj))
 plot_calib(calibration3);
 savefig(sprintf('./Data/S%02d/calibration3',subj))
 %
-plot_calib(calibration);
-plot_calib(calibration2,true);
-plot_calib(calibration3,true);
+plot_calib(calibration1,false,true);
+plot_calib(calibration2,true,true);
+plot_calib(calibration3,true,true);
 savefig(sprintf('./Data/S%02d/calibration_both',subj))
 
 fprintf('\nBeginning Calibration:\n')
-fprintf('\t min / max proportion of Color 1: \t%d / %d\n\n',round(calibration.rslt.range(1)*100),round(100*calibration.rslt.range(2)))
+fprintf('\t min / max proportion of Color 1: \t%d / %d\n\n',round(calibration1.rslt.range(1)*100),round(100*calibration1.rslt.range(2)))
 fprintf('Mid Calibration:\n')
 fprintf('\t  min / max proportion of Color 1: \t%d / %d\n\n',round(100*calibration2.rslt.range(1)),round(100*calibration2.rslt.range(2)))
 fprintf('End Calibration:\n')
