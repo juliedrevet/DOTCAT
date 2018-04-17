@@ -1,7 +1,7 @@
 function preconfig(subj)
 
 % create subj folder
-foldname = sprintf('./Data/S%02d',subj);
+foldname = sprintf('./Raw/S%02d',subj);
 if ~exist(foldname,'dir')
     mkdir(foldname);
 end
@@ -10,10 +10,10 @@ tic
 % generate raw calibration structure
 fname = sprintf('DOTCAT_S%02d_%s_raw_calib',subj,datestr(now,'yyyymmdd-HHMM'));
 fname = fullfile(foldname,fname);
-calib = gen_calibration(120,2,fname);
+calibration = gen_calibration(120,2,fname);
 toc
 
-cfg = calib.cfg;
+cfg = calibration.cfg;
 
 % generate raw experiment structure and save in subject folder
 tic
@@ -27,17 +27,20 @@ fname = sprintf('DOTCAT_S%02d_%s_raw_expe',subj,datestr(now,'yyyymmdd-HHMM'));
 fname = fullfile(foldname,fname);
 save([fname,'.mat'],'expe_raw');
 
+nblck = length(expe.blck);
 
 % generate raw patterns (no color proportion applied yet) and save
-pattern = Pattern();
+pattern(nblck,1) = Pattern();
 tic
-for iblck = 1:length(expe.blck)
+for iblck = 1:nblck
     condtn = expe.blck(iblck).condtn;
     ntrl   = expe.blck(iblck).ntrl;
     if condtn == 2
         for itrl = 1:ntrl
             pattern(iblck,itrl) = gen_pattern(cfg);
         end
+    else
+        pattern(iblck,:) = Pattern();
     end
 end
 toc

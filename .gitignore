@@ -8,6 +8,7 @@
 .DS_Store*
 
 # directories
+Data/
 old_drafts/
 scrshots/
 Analysis/fig/

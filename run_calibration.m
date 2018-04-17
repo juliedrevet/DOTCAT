@@ -110,7 +110,7 @@ color_prop = calibration.stim.color_prop;
 calibration.rslt = [];
 
 if trainornot
-    train_calib = importdata('./Calibration/DOTCAT_training_calibration_1.mat');
+    train_calib = importdata('./Raw/DOTCAT_training_calibration_1.mat');
     train_idx = Shuffle(1:length(train_calib.stim.pattern));
     train_pat = train_calib.stim.pattern(train_idx);
     train_cprop = train_calib.stim.color_prop(train_idx);

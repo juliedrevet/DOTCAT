@@ -12,23 +12,23 @@ if nargin < 1
     error('Missing subject number!');
 elseif nargin == 1
     warning('Will take default calibration!');
-    calibration = importdata('./Data/DOTCAT_default_calibration.mat');
+    calibration = importdata('./Raw/DOTCAT_default_calibration.mat');
     warning('Will take default patterns!');
-    pattern_raw = importdata('./Data/DOTCAT_default_pattern_raw.mat');
+    pattern_raw = importdata('./Raw/DOTCAT_default_pattern_raw.mat');
     warning('Will take default raw experiment!');
-    expe_raw    = importdata('./Data/DOTCAT_default_expe_raw.mat');
+    expe_raw    = importdata('./Raw/DOTCAT_default_expe_raw.mat');
     start_blck  = 1;
     end_blck    = 10;
 elseif nargin == 2
     warning('Will take default patterns!');
-    pattern_raw = importdata('./Data/DOTCAT_default_pattern_raw.mat');
+    pattern_raw = importdata('./Raw/DOTCAT_default_pattern_raw.mat');
     warning('Will take default raw experiment!');
-    expe_raw   = importdata('./Data/DOTCAT_default_expe_raw.mat');
+    expe_raw   = importdata('./Raw/DOTCAT_default_expe_raw.mat');
     start_blck = 1;
     end_blck   = 10;
 elseif nargin == 3
     warning('Will take default raw experiment!');
-    expe_raw   = importdata('./Data/DOTCAT_default_expe_raw.mat');
+    expe_raw   = importdata('./Raw/DOTCAT_default_expe_raw.mat');
     start_blck = 1;
     end_blck   = 10;
 elseif nargin == 4
@@ -335,7 +335,7 @@ try
     
     %% loop on blocks
     for iblck = start_blck:end_blck
-        % blck.epimap:    starting color    => 1:color1 or 2:color2
+        % blck.epimap:    starting color           => 1:color1 or 2:color2
         % blck.color_seq: color profile of outcome => 1:epimap color or 0:other color
         blck = expe.blck(iblck);
         ntrl = blck.ntrl;
@@ -392,7 +392,7 @@ try
         % correct: without ffb
         stim.correct = blck.epimap*(blck.reward_seq==blck.p_reward)+(3-blck.epimap)*(~(blck.reward_seq==blck.p_reward));
         
-        ntrl = 5;
+        %ntrl = 5;
         
         % regular instructions
         iu = randi(2); % randomize position of upper shape/color
